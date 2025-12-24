@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+import time
 
 """ 
 dial begins pointing at 50
@@ -29,35 +30,64 @@ a = c                           # set c (current position) as new starting point
  """
 
 # connecting to the database
-db = "input_d1.db"
-tname = "intable_d1"
-connection = sqlite3.connect(db)
+infile = "test_d1"
+tname = "testtable_d1"
+connection = sqlite3.connect(f"{infile}.db")
 
 
 # cursor
 cr = connection.cursor()
 
 # get number of rows
-cr.execute(f"SELECT * FROM {tname}")
-nrows = cr.fetchall()
-print(nrows)
+cr.execute(f"SELECT COUNT(*) FROM {tname}")
+nrows = cr.fetchall()[0]
+#print(nrows)
 
 # add columns for start point (a), parsed amount (diff), result/end point (c)
 # note: sqlite only supports adding one column at a time :/
-""" cr.execute(f"ALTER TABLE {tname} ADD StartPoint int(255)")
-cr.execute(f"ALTER TABLE {tname} ADD Diff int(255)")
-cr.execute(f"ALTER TABLE {tname} ADD EndPoint int(255)") """
+# note: only execute these lines once
 
-# get number of rows
-cr.execute(f"SELECT * FROM {tname}")
-nrows = cr.fetchall()
-print(nrows)
+#cr.execute(f"ALTER TABLE {tname} ADD StartPoint int(255)")
+#cr.execute(f"ALTER TABLE {tname} ADD Diff int(255)")
+#cr.execute(f"ALTER TABLE {tname} ADD EndPoint int(255)")
+#cr.execute(f"ALTER TABLE {tname} ADD moduloHundred int(255)")
 
-# procedure to get
+# update Diff column with parsed value
+cr.execute(f"UPDATE {tname} SET Diff = replace (col0, 'L', '-') WHERE col0 LIKE 'L%'")
+cr.execute(f"UPDATE {tname} SET Diff = replace (col0, 'R', '+') WHERE col0 LIKE 'R%'")
+
+# set initial starting point - note: this updates all rows!
 
 
+cr.execute(f"UPDATE {tname} SET moduloHundred = Diff % 100")
+
+sp = 50
+#cr.execute(f"UPDATE {tname} SET StartPoint = 50")
+cr.execute(f"SELECT * from {tname}")
+
+cr2 = connection.cursor()
+
+# not currently working - timing issues of startpoint not updating fast enough
+for row in cr:
+        print(row)
+        cr2.execute(f"UPDATE {tname} SET StartPoint = {sp}")
+        while(row[1] != sp):
+            time.sleep(5)
+            print(row[1])
+            print(sp)
+            print('Pausing for a few seconds')
+        cr2.execute(f"UPDATE {tname} SET EndPoint = StartPoint + moduloHundred ") 
+        cr2.execute(f"UPDATE {tname} SET Endpoint = CASE WHEN EndPoint > 99 THEN (EndPoint - 100) WHEN Endpoint < 0 THEN (Endpoint + 100) ELSE Endpoint END")
+        cr2.execute(f"SELECT EndPoint from {tname}")
+        sp = cr2.fetchone()[0]
+        print(sp)
+    
+    
+    
 # print statement will execute if there are no errors
 print("Connected to the database")
+
+connection.commit()
 
 # close the connection
 connection.close()

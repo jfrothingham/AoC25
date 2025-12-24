@@ -4,8 +4,8 @@ import pandas as pd
 import dbm.sqlite3 as d
 
 # specify input file
-infile = "input_d1"
-tname = "intable_d1"
+infile = "test_d1"
+tname = "testtable_d1"
 
 # create dataframe from input file
 infile_df = pd.read_table(f"{infile}", header=None)
