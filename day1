@@ -1,0 +1,31 @@
+import sqlite3
+import pandas as pd
+
+inputdataframe = pd.read_table("input_d1", names=['motion'])
+#print(inputdataframe.keys())
+#print(inputdataframe['motion'].values)
+
+inputs = inputdataframe['motion'].values
+n_inputs = len(inputs)
+
+tname = "codes"
+
+# connecting to the database
+db = "input_d1.db"
+connection = sqlite3.connect(db)
+
+# cursor
+crsr = connection.cursor()
+crsr.execute(f"CREATE TABLE {tname} (input varchar(255))")
+
+for i in range(n_inputs):
+    val = inputs[i]
+    crsr.execute(f"INSERT INTO {tname} (input) VALUES ('{val}')")
+    
+
+# print statement will execute if there are no errors
+print("Connected to the database")
+
+# close the connection
+connection.close()
+
