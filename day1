@@ -1,14 +1,31 @@
 import sqlite3
 import pandas as pd
 
-inputdataframe = pd.read_table("input_d1", names=['motion'])
-#print(inputdataframe.keys())
-#print(inputdataframe['motion'].values)
+""" 
+dial begins pointing at 50
+L### = minus ###
+R### = plus ###
+dial goes 0 to 99
+0 = 100
 
-inputs = inputdataframe['motion'].values
-n_inputs = len(inputs)
+list of instructions in format L###, R###, etc., though ### may be any length
 
-tname = "codes"
+password is number of times dial is left pointing at 0 after any rotation in sequence
+
+pseudocode plan
+
+a = 50                          # initial starting point
+L68                             # instruction: dial left 68 clicks
+b = a - 68 = 50-68 = -18        # intermediate result is 18 clicks below 0
+while b is not in range 0-99    # loop as many times as needed to keep b in allowable range
+    if b < 0 then c = b + 100       # no negative numbers allowed - return to range 0-99
+    if b > 99 then c = 100 - b      # no numbers in the 100s allowed - return to range 0-99
+c = b                           # once result is in range, store it in variable c
+write c to results column       # add c to database
+a = c                           # set c (current position) as new starting point
+...                             # repeat for each instruction given
+                                # count number of times c=0 occurs in results column - that's the password
+ """
 
 # connecting to the database
 db = "input_d1.db"
@@ -16,12 +33,6 @@ connection = sqlite3.connect(db)
 
 # cursor
 crsr = connection.cursor()
-crsr.execute(f"CREATE TABLE {tname} (input varchar(255))")
-
-for i in range(n_inputs):
-    val = inputs[i]
-    crsr.execute(f"INSERT INTO {tname} (input) VALUES ('{val}')")
-    
 
 # print statement will execute if there are no errors
 print("Connected to the database")
