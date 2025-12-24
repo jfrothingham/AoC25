@@ -1,0 +1,48 @@
+# necessary import statements
+import sqlite3
+import pandas as pd
+
+# specify input file
+infile = "input_d1"
+tname = "intable_d1"
+
+# create dataframe from input file
+infile_df = pd.read_table(f"{infile}")
+
+# create column labels ['col0', 'col1', ..., 'coln'] for all columns
+ncol = len(infile_df.keys())
+colnames = []
+for i in range(ncol):
+    colnames.append(f"col{i}")
+
+# apply column labels
+infile_df.columns = colnames
+
+# connect to database - creates empty database if none exists
+connection = sqlite3.connect(f"{infile}.db")
+
+# cursor
+crsr = connection.cursor()
+
+# create a table with first column of data
+firstcol = "col0"
+firstcolvalues = infile_df[firstcol].values
+crsr.execute(f"CREATE TABLE {tname} ({firstcol} varchar(255))")
+for l in range(len(firstcolvalues)):
+    crsr.execute(f"INSERT INTO {tname} ({firstcol}) VALUES ('{firstcolvalues[l]}')")
+
+# add additional columns of data to table if necessary
+if ncol > 1:
+    for j in range(1,ncol):
+        col = f"col{j}"
+        crsr.execute(f"ALTER TABLE {tname} ADD {col} varchar(255)")
+        val = infile_df[col].values
+        nval = len(val)
+        for k in range(nval):
+            crsr.execute(f"INSERT INTO {tname} ({col}) VALUES ('{val[k]}')")
+
+# print statement will execute if there are no errors
+print("Connected to the database")
+
+# close the connection
+connection.close()
