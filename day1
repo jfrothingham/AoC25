@@ -6,7 +6,7 @@ dial begins pointing at 50
 L### = minus ###
 R### = plus ###
 dial goes 0 to 99
-0 = 100
+0 = 100n where n is any integer
 
 list of instructions in format L###, R###, etc., though ### may be any length
 
@@ -16,23 +16,45 @@ pseudocode plan
 
 a = 50                          # initial starting point
 L68                             # instruction: dial left 68 clicks
-b = a - 68 = 50-68 = -18        # intermediate result is 18 clicks below 0
+diff = -68                      # code to parse that L=subtraction and that 68 is amount to subtract by
+b = a + diff = 50-68 = -18      # intermediate result is 18 clicks below 0
 while b is not in range 0-99    # loop as many times as needed to keep b in allowable range
     if b < 0 then c = b + 100       # no negative numbers allowed - return to range 0-99
     if b > 99 then c = 100 - b      # no numbers in the 100s allowed - return to range 0-99
 c = b                           # once result is in range, store it in variable c
 write c to results column       # add c to database
 a = c                           # set c (current position) as new starting point
-...                             # repeat for each instruction given
+                                # repeat for each instruction given until end of list
                                 # count number of times c=0 occurs in results column - that's the password
  """
 
 # connecting to the database
 db = "input_d1.db"
+tname = "intable_d1"
 connection = sqlite3.connect(db)
 
+
 # cursor
-crsr = connection.cursor()
+cr = connection.cursor()
+
+# get number of rows
+cr.execute(f"SELECT * FROM {tname}")
+nrows = cr.fetchall()
+print(nrows)
+
+# add columns for start point (a), parsed amount (diff), result/end point (c)
+# note: sqlite only supports adding one column at a time :/
+""" cr.execute(f"ALTER TABLE {tname} ADD StartPoint int(255)")
+cr.execute(f"ALTER TABLE {tname} ADD Diff int(255)")
+cr.execute(f"ALTER TABLE {tname} ADD EndPoint int(255)") """
+
+# get number of rows
+cr.execute(f"SELECT * FROM {tname}")
+nrows = cr.fetchall()
+print(nrows)
+
+# procedure to get
+
 
 # print statement will execute if there are no errors
 print("Connected to the database")
