@@ -1,11 +1,12 @@
 # necessary import statements
 import sqlite3
 import pandas as pd
-import dbm.sqlite3 as d
+
 
 # specify input file
 infile = "test_d1"
 tname = "testtable_d1"
+tname_out = "resultstable_d1"
 
 # create dataframe from input file
 infile_df = pd.read_table(f"{infile}", header=None)
@@ -23,8 +24,8 @@ print(infile_df.keys())
 
 
 # create an empty database
-with d.open(f"{infile}.db", 'c') as db:
-    print('new database!')
+""" with sqlite3.open(f"{infile}.db", 'c') as db:
+    print('new database!') """
 
 # connect to database
 connection = sqlite3.connect(f"{infile}.db")
@@ -37,6 +38,7 @@ firstcol = "col0"
 firstcolvalues = infile_df[firstcol].values
 print(firstcolvalues[0])
 crsr.execute(f"CREATE TABLE {tname} ({firstcol} varchar(255))")
+crsr.execute(f"CREATE TABLE {tname_out} ({firstcol} varchar(255))")
 for l in range(len(firstcolvalues)):
     crsr.execute(f"INSERT INTO {tname} ({firstcol}) VALUES ('{firstcolvalues[l]}')")
 
@@ -50,6 +52,8 @@ if ncol > 1:
         for k in range(nval):
             crsr.execute(f"INSERT INTO {tname} ({col}) VALUES ('{val[k]}')")
 
+
+crsr.execute(f"INSERT INTO {tname_out}({firstcol}) SELECT {firstcol} from {tname}")
 
 connection.commit()
 

@@ -32,11 +32,13 @@ a = c                           # set c (current position) as new starting point
 # connecting to the database
 infile = "test_d1"
 tname = "testtable_d1"
+tname_out = "resultstable_d1"
 connection = sqlite3.connect(f"{infile}.db")
 
 
-# cursor
+# cursors - one for reading input, one for writing output
 cr = connection.cursor()
+cr2 = connection.cursor()
 
 # get number of rows
 cr.execute(f"SELECT COUNT(*) FROM {tname}")
@@ -47,10 +49,10 @@ nrows = cr.fetchall()[0]
 # note: sqlite only supports adding one column at a time :/
 # note: only execute these lines once
 
-#cr.execute(f"ALTER TABLE {tname} ADD StartPoint int(255)")
-#cr.execute(f"ALTER TABLE {tname} ADD Diff int(255)")
-#cr.execute(f"ALTER TABLE {tname} ADD EndPoint int(255)")
-#cr.execute(f"ALTER TABLE {tname} ADD moduloHundred int(255)")
+cr2.execute(f"ALTER TABLE {tname_out} ADD StartPoint int(255)")
+cr.execute(f"ALTER TABLE {tname} ADD Diff int(255)")
+cr2.execute(f"ALTER TABLE {tname_out} ADD EndPoint int(255)")
+cr.execute(f"ALTER TABLE {tname} ADD moduloHundred int(255)")
 
 # update Diff column with parsed value
 cr.execute(f"UPDATE {tname} SET Diff = replace (col0, 'L', '-') WHERE col0 LIKE 'L%'")
@@ -58,29 +60,25 @@ cr.execute(f"UPDATE {tname} SET Diff = replace (col0, 'R', '+') WHERE col0 LIKE 
 
 # set initial starting point - note: this updates all rows!
 
-
 cr.execute(f"UPDATE {tname} SET moduloHundred = Diff % 100")
 
 sp = 50
 #cr.execute(f"UPDATE {tname} SET StartPoint = 50")
 cr.execute(f"SELECT * from {tname}")
 
-cr2 = connection.cursor()
-
-# not currently working - timing issues of startpoint not updating fast enough
 for row in cr:
-        print(row)
-        cr2.execute(f"UPDATE {tname} SET StartPoint = {sp}")
-        while(row[1] != sp):
-            time.sleep(5)
-            print(row[1])
-            print(sp)
-            print('Pausing for a few seconds')
-        cr2.execute(f"UPDATE {tname} SET EndPoint = StartPoint + moduloHundred ") 
-        cr2.execute(f"UPDATE {tname} SET Endpoint = CASE WHEN EndPoint > 99 THEN (EndPoint - 100) WHEN Endpoint < 0 THEN (Endpoint + 100) ELSE Endpoint END")
-        cr2.execute(f"SELECT EndPoint from {tname}")
-        sp = cr2.fetchone()[0]
-        print(sp)
+        #print(row)
+        mod100 = row[2]
+        ident = row[0]
+        ep = sp + mod100
+        #print(ep)
+        if ep > 99: ep = ep - 100
+        if ep < 0: ep = ep + 100
+        cr2.execute(f"UPDATE {tname_out} SET Endpoint = {ep} WHERE col0 = '{ident}' AND Startpoint IS NULL")
+        cr2.execute(f"UPDATE {tname_out} SET Startpoint = {sp} WHERE col0 = '{ident}' AND Endpoint IS NOT NULL")
+        #print(ep)
+        #print(row)
+        sp = ep
     
     
     
