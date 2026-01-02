@@ -1,6 +1,5 @@
 import sqlite3
 import pandas as pd
-import time
 
 """ 
 dial begins pointing at 50
@@ -30,8 +29,8 @@ a = c                           # set c (current position) as new starting point
  """
 
 # connecting to the database
-infile = "test_d1"
-tname = "testtable_d1"
+infile = "input_d1"
+tname = "inputtable_d1"
 tname_out = "resultstable_d1"
 connection = sqlite3.connect(f"{infile}.db")
 
@@ -84,6 +83,10 @@ for row in cr:
     
 # print statement will execute if there are no errors
 print("Connected to the database")
+
+cr2.execute(f"SELECT COUNT(Endpoint) FROM {tname_out} WHERE Endpoint = 0")
+n_zeros = cr2.fetchall()[0]
+print(f"There are {n_zeros[0]} zeros in the results")
 
 connection.commit()
 
