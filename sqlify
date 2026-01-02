@@ -1,6 +1,7 @@
 # necessary import statements
 import sqlite3
 import pandas as pd
+#import np
 
 
 # specify input file
@@ -10,6 +11,7 @@ tname_out = "resultstable_d1"
 
 # create dataframe from input file
 infile_df = pd.read_table(f"{infile}", header=None)
+print(infile_df[0][113])
 
 # create column labels ['col0', 'col1', ..., 'coln'] for all columns
 ncol = len(infile_df.keys())
@@ -36,6 +38,9 @@ crsr = connection.cursor()
 # create a table with first column of data
 firstcol = "col0"
 firstcolvalues = infile_df[firstcol].values
+
+print(firstcolvalues[113])
+
 #print(firstcolvalues[0])
 crsr.execute(f"CREATE TABLE {tname} ({firstcol} varchar(255))")
 crsr.execute(f"CREATE TABLE {tname_out} ({firstcol} varchar(255))")
